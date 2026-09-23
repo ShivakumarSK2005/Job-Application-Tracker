@@ -39,6 +39,7 @@ build/
 .envhelp*
 application.properties
 **/application.properties
+!src/main/resources/application.properties
 
 # Log and test files
 *.log
