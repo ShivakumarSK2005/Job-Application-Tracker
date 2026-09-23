@@ -52,7 +52,6 @@ export function AuthProvider({ children }) {
         } catch (e) {}
       }
 
-      localStorage.setItem('last_user_email', email);
       setUser(parsedUser);
       return { success: true };
     } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Briefcase, ArrowRight, Loader2, Lock, Mail, User, ShieldCheck, CheckCircle2, Eye, EyeOff, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -7,7 +7,7 @@ export default function AuthPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    email: localStorage.getItem('last_user_email') || '',
+    email: '',
     mobileNumber: '',
     password: '',
     confirmPassword: '',
@@ -16,6 +16,10 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+
+  useEffect(() => {
+    localStorage.removeItem('last_user_email');
+  }, []);
 
   const { login, register, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -176,6 +180,13 @@ export default function AuthPage() {
               type="button"
               onClick={() => {
                 setIsRegister(false);
+                setFormData({
+                  name: '',
+                  email: '',
+                  mobileNumber: '',
+                  password: '',
+                  confirmPassword: '',
+                });
                 setErrorMsg('');
                 setFieldErrors({});
                 setShowPassword(false);
@@ -193,6 +204,13 @@ export default function AuthPage() {
               type="button"
               onClick={() => {
                 setIsRegister(true);
+                setFormData({
+                  name: '',
+                  email: '',
+                  mobileNumber: '',
+                  password: '',
+                  confirmPassword: '',
+                });
                 setErrorMsg('');
                 setFieldErrors({});
                 setShowPassword(false);
@@ -216,7 +234,7 @@ export default function AuthPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {isRegister && (
               <div>
                 <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
@@ -229,6 +247,7 @@ export default function AuthPage() {
                     placeholder="Shivakumar"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    autoComplete="off"
                     className={`w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border ${
                       fieldErrors.name
                         ? 'border-rose-500 focus:ring-rose-500/20'
@@ -250,9 +269,10 @@ export default function AuthPage() {
                 <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
-                  placeholder="shiva@gmail.com"
+                  placeholder="name@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  autoComplete={isRegister ? "new-password" : "email"}
                   className={`w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border ${
                     fieldErrors.email
                       ? 'border-rose-500 focus:ring-rose-500/20'
@@ -277,6 +297,7 @@ export default function AuthPage() {
                     placeholder="+91 98765 43210"
                     value={formData.mobileNumber}
                     onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+                    autoComplete="off"
                     className={`w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border ${
                       fieldErrors.mobileNumber
                         ? 'border-rose-500 focus:ring-rose-500/20'
@@ -301,6 +322,7 @@ export default function AuthPage() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  autoComplete={isRegister ? "new-password" : "current-password"}
                   className={`w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border ${
                     fieldErrors.password
                       ? 'border-rose-500 focus:ring-rose-500/20'
@@ -333,6 +355,7 @@ export default function AuthPage() {
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    autoComplete="new-password"
                     className={`w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border ${
                       fieldErrors.confirmPassword
                         ? 'border-rose-500 focus:ring-rose-500/20'
