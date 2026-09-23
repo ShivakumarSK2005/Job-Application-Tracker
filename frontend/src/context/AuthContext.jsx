@@ -55,9 +55,22 @@ export function AuthProvider({ children }) {
       setUser(parsedUser);
       return { success: true };
     } catch (error) {
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        return {
+          success: false,
+          error: 'Cannot connect to backend server. Make sure your Spring Boot backend is running and reachable.',
+        };
+      }
+      const data = error.response?.data;
+      if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
+        return {
+          success: false,
+          error: 'Backend API not found. On Vercel, please set VITE_API_URL in project settings to your deployed backend URL.',
+        };
+      }
       const message =
-        error.response?.data?.message ||
-        (typeof error.response?.data === 'string' ? error.response.data : null) ||
+        data?.message ||
+        (typeof data === 'string' ? data : null) ||
         'Invalid credentials. Please verify your email and password.';
       return { success: false, error: message };
     } finally {
@@ -74,7 +87,19 @@ export function AuthProvider({ children }) {
       // Automatically login after register
       return await login(email, password);
     } catch (error) {
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        return {
+          success: false,
+          error: 'Cannot connect to backend server. Make sure your Spring Boot backend is running and reachable.',
+        };
+      }
       const data = error.response?.data;
+      if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
+        return {
+          success: false,
+          error: 'Backend API not found. On Vercel, please set VITE_API_URL in project settings to your deployed backend URL.',
+        };
+      }
       let message = 'Registration failed. Please check your inputs.';
       if (data) {
         if (data.message) {
