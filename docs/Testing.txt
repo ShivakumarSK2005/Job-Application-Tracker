@@ -1,0 +1,592 @@
+Step 2 — Understand the testing layers
+
+Your application:
+
+Controller
+    ↓
+Service
+    ↓
+Repository
+    ↓
+MongoDB
+
+We'll test them separately.
+
+Unit test
+JobService
+   ↓
+mock Repository
+
+We're testing the service logic only.
+
+Controller test
+HTTP Request
+    ↓
+JobController
+    ↓
+mock JobService
+
+We're testing the API layer.
+
+Integration test
+Controller
+    ↓
+Service
+    ↓
+Repository
+    ↓
+MongoDB
+
+We're testing the whole flow.
+
+Step 3 — First test: JobService
+
+Create:
+
+src
+└── test
+    └── java
+        └── com.jobtracker
+            └── service
+                └── JobServiceTest.java
+
+Before we write the test, there's one important issue:
+
+Your JobService currently depends on:
+
+JobRepository
+UserRepository
+MongoTemplate
+SecurityContextHolder
+
+So testing it directly requires mocking the authenticated user as well.
+That's actually useful because you'll learn how Spring Security interacts with service tests.
+We'll start with a create-job test.
+
+What the test should verify
+
+When a logged-in user creates:
+
+{
+  "company": "Google",
+  "role": "Software Engineer",
+  "location": "Bangalore",
+  "status": "APPLIED",
+  "appliedDate": "2026-09-20"
+}
+
+the service should:
+
+JWT user
+   ↓
+getCurrentUser()
+   ↓
+user ID = 123
+   ↓
+job.userId = 123
+   ↓
+repository.save(job)
+
+The test should verify that the userId is automatically assigned.
+Important: the client never sends userId.
+That's one of the security properties we've built into this project.
+
+
+// createJob_shouldCreateJobSuccessfully() -> test name
+So the test flow becomes:
+
+JWT email
+   ↓
+john@gmail.com
+   ↓
+UserRepository
+   ↓
+mock User
+   ↓
+user.getId() → "user123"
+   ↓
+job.setUserId("user123")
+   ↓
+repository.save()
+
+
+// What we just accomplished
+We tested an important piece of your application:
+
+createJob()
+   ↓
+gets authenticated user
+   ↓
+gets user ID
+   ↓
+assigns userId to job
+   ↓
+saves job
+   ↓
+returns JobResponse
+
+
+
+// getJobById_shouldThrowExceptionWhenJobDoesNotBelongToUser() -> test name
+What this test proves
+User → user123
+       ↓
+Requests job999
+       ↓
+findByIdAndUserId(job999, user123)
+       ↓
+No matching job
+       ↓
+JobNotFoundException
+       ↓
+404 from controller
+
+
+
+// updateJob_shouldUpdateJobForCurrentUser() -> Test Name 
+What this test checks
+
+Authenticated user
+       ↓
+user123
+       ↓
+Find job123 owned by user123
+       ↓
+Update existing job
+       ↓
+Save
+       ↓
+Return updated JobResponse
+
+// updateJob_shouldThrowExceptionWhenJobDoesNotBelongToUser() -> Test Name
+should reject a job belonging to another user
+This verifies:
+
+User → tries to update someone else's job
+              ↓
+findByIdAndUserId()
+              ↓
+Optional.empty()
+              ↓
+JobNotFoundException
+              ↓
+save() never happens
+
+
+// deleteJob_shouldDeleteJobSuccessfully() -> Test Name 
+to check successful deletion
+
+// deleteJob_shouldThrowExceptionWhenJobDoesNotBelongToUser() -> Test Name
+to check should reject another user's job
+
+// updateStatus_shouldUpdateStatusSuccessfully() -> Test Name
+to check successful update
+
+// updateStatus_shouldThrowExceptionWhenJobDoesNotBelongToUser() -> Test Name
+to check should reject another user's job
+
+
+
+// createJob_shouldCreateJobSuccessfully
+   → Should create a job and assign it to the currently logged-in user.
+
+// getJobById_shouldReturnJobForCurrentUser
+   → Should return a job when it belongs to the currently logged-in user.
+
+// getJobById_shouldThrowExceptionWhenJobDoesNotBelongToUser
+   → Should reject accessing a job belonging to another user.
+
+// updateJob_shouldUpdateJobForCurrentUser
+   → Should successfully update a job belonging to the current user.
+
+// updateJob_shouldThrowExceptionWhenJobDoesNotBelongToUser
+   → Should reject updating a job belonging to another user.
+
+// deleteJob_shouldDeleteJobSuccessfully
+   → Should successfully delete the current user's job.
+
+// deleteJob_shouldThrowExceptionWhenJobDoesNotBelongToUser
+   → Should reject deleting a job belonging to another user.
+
+// updateStatus_shouldUpdateStatusSuccessfully
+   → Should successfully update the status of the current user's job.
+
+// updateStatus_shouldThrowExceptionWhenJobDoesNotBelongToUser
+   → Should reject changing the status of another user's job.
+
+
+
+InterviewService
+
+// createInterview_shouldCreateInterviewSuccessfully
+   → Should create an interview for the user's job.
+
+// getInterviews_shouldReturnInterviewsForUserJob
+   → Should return interviews belonging to the user's job.
+
+// getInterviewById_shouldReturnInterviewForUserJob
+   → Should return an interview when the interview belongs to the user's job.
+
+// getInterviewById_shouldThrowExceptionWhenInterviewDoesNotExist
+   → Should throw an exception when the interview doesn't exist.
+
+// updateInterview_shouldUpdateInterviewSuccessfully
+   → Should successfully update an interview belonging to the user's job.
+
+// deleteInterview_shouldDeleteInterviewSuccessfully
+   → Should successfully delete an interview belonging to the user's job.
+
+// createInterview_shouldRejectInterviewForAnotherUsersJob
+   → Should reject creating an interview for another user's job.
+
+// So we're testing both functionality and ownership/security for each major JobService operation.
+// Overall structure
+
+// createInterview_shouldCreateInterviewSuccessfully
+   → Should successfully create an interview for the current user's job.
+
+// createInterview_shouldRejectInterviewForAnotherUsersJob
+   → Should reject creating an interview for another user's job.
+
+// getInterviews_shouldReturnInterviewsForUserJob
+   → Should return all interviews belonging to the current user's job.
+
+// getInterviewById_shouldReturnInterviewForUserJob
+   → Should return an interview belonging to the current user's job.
+
+// getInterviewById_shouldThrowExceptionWhenInterviewDoesNotExist
+   → Should reject when the requested interview does not exist.
+
+// updateInterview_shouldUpdateInterviewSuccessfully
+   → Should successfully update an interview belonging to the current user's job.
+
+// updateInterview_shouldRejectInterviewForAnotherUsersJob
+   → Should reject updating an interview for another user's job.
+
+// deleteInterview_shouldDeleteInterviewSuccessfully
+   → Should successfully delete an interview belonging to the current user's job.
+
+// deleteInterview_shouldRejectInterviewForAnotherUsersJob
+   → Should reject deleting an interview for another user's job.
+
+So we're testing both functionality and ownership/security for each major InterviewService operation.
+
+Overall structure
+INTERVIEW SERVICE
+│
+├── CREATE
+│   ├── create successfully
+│   └── reject another user's job
+│
+├── READ
+│   ├── get interviews successfully
+│   ├── get interview by ID successfully
+│   └── reject non-existing interview
+│
+├── UPDATE
+│   ├── update successfully
+│   └── reject another user's job
+│
+└── DELETE
+    ├── delete successfully
+    └── reject another user's job
+
+AuthService
+
+// register_shouldRegisterUserSuccessfully
+   → Should successfully register a new user.
+
+// register_shouldRejectDuplicateEmail
+   → Should reject registration when the email already exists.
+
+// login_shouldLoginSuccessfully
+   → Should successfully authenticate a user and return a JWT.
+
+// login_shouldRejectInvalidCredentials
+   → Should reject login when the email or password is incorrect.
+
+So we're testing both successful authentication operations and invalid/duplicate-user cases.
+
+Overall structure
+AUTH SERVICE
+│
+├── REGISTER
+│   ├── register successfully
+│   └── reject duplicate email
+│
+└── LOGIN
+    ├── login successfully
+    └── reject invalid credentials
+
+DashboardService
+
+// getDashboard_shouldReturnCorrectCounts
+   → Should return the correct application counts for the current user.
+
+// getDashboard_shouldReturnZeroWhenUserHasNoJobs
+   → Should return zero counts when the current user has no applications.
+
+So we're testing whether the dashboard calculates application statistics correctly for the current user.
+
+Overall structure
+DASHBOARD SERVICE
+│
+└── DASHBOARD
+    ├── return correct counts
+    └── return zero when no jobs exist
+
+JwtService
+
+// generateToken_shouldGenerateValidToken
+   → Should successfully generate a JWT for a user.
+
+// extractEmail_shouldExtractEmailFromValidToken
+   → Should extract the user's email from a valid JWT.
+
+// extractEmail_shouldRejectInvalidToken
+   → Should reject an invalid or tampered JWT.
+
+So we're testing JWT creation and validation/extraction.
+
+Overall structure
+JWT SERVICE
+│
+├── GENERATE
+│   └── generate valid token
+│
+└── EXTRACT
+    ├── extract email from valid token
+    └── reject invalid token
+
+JwtAuthenticationFilter / Security
+
+// filter_shouldAuthenticateWithValidToken
+   → Should authenticate the request when a valid JWT is provided.
+
+// filter_shouldRejectMissingToken
+   → Should reject a request when no JWT is provided.
+
+// filter_shouldRejectExpiredToken
+   → Should reject a request when the JWT has expired.
+
+// filter_shouldRejectInvalidToken
+   → Should reject a request when the JWT is invalid or malformed.
+
+So we're testing the main authentication scenarios handled by the JWT security filter.
+
+Overall structure
+SECURITY / JWT FILTER
+│
+├── VALID TOKEN
+│   └── authenticate successfully
+│
+├── NO TOKEN
+│   └── reject request
+│
+├── EXPIRED TOKEN
+│   └── reject request
+│
+└── INVALID TOKEN
+    └── reject request
+
+
+Controller / API tests
+
+// getJobs_shouldReturnJobs
+   → Should return the user's jobs through the API.
+
+// createJob_shouldCreateJob
+   → Should create a job through the API.
+
+// updateJob_shouldUpdateJob
+   → Should update a job through the API.
+
+// updateStatus_shouldUpdateStatus
+   → Should update a job's status through the API.
+
+// deleteJob_shouldDeleteJob
+   → Should delete a job through the API.
+
+So we're testing whether the HTTP/API layer correctly connects requests to the service layer.
+Overall structure
+CONTROLLER / API
+│
+└── JOB API
+    ├── GET
+    ├── POST
+    ├── PUT
+    ├── PATCH
+    └── DELETE
+
+
+CREATE
+└── create successfully
+
+READ
+├── get own job successfully
+└── cannot get another user's job
+
+UPDATE
+├── update own job successfully
+└── cannot update another user's job
+
+DELETE
+├── delete own job successfully
+└── cannot delete another user's job
+
+STATUS
+├── update own job status successfully
+└── cannot update another user's job status
+
+
+// And for the next InterviewService tests, we'll structure it the same way:
+CREATE
+├── create successfully
+└── reject for another user's job
+
+READ
+├── get interviews successfully
+├── get interview by ID successfully
+└── reject invalid/non-existing interview
+
+UPDATE
+└── update successfully
+
+DELETE
+└── delete successfully
+
+This is the format I'll use going forward.
+
+
+
+// 
+
+
+Yes. For the entire remaining testing plan, use this structure.
+
+JOB SERVICE ✅
+│
+├── CREATE
+│   └── create successfully
+│
+├── READ
+│   ├── get own job successfully
+│   └── reject another user's job
+│
+├── UPDATE
+│   ├── update own job successfully
+│   └── reject another user's job
+│
+├── DELETE
+│   ├── delete own job successfully
+│   └── reject another user's job
+│
+└── STATUS
+    ├── update own job status successfully
+    └── reject another user's job
+INTERVIEW SERVICE — next
+INTERVIEW SERVICE
+│
+├── CREATE
+│   ├── create successfully
+│   └── reject for another user's job
+│
+├── READ
+│   ├── get interviews successfully
+│   ├── get interview by ID successfully
+│   └── reject non-existing interview
+│
+├── UPDATE
+│   ├── update successfully
+│   └── reject for another user's job
+│
+└── DELETE
+    ├── delete successfully
+    └── reject for another user's job
+AUTH SERVICE
+AUTH SERVICE
+│
+├── REGISTER
+│   ├── register successfully
+│   └── reject duplicate email
+│
+└── LOGIN
+    ├── login successfully
+    └── reject invalid credentials
+DASHBOARD SERVICE
+DASHBOARD SERVICE
+│
+└── DASHBOARD
+    ├── return correct application counts
+    └── return counts only for current user
+JWT SERVICE
+JWT SERVICE
+│
+├── TOKEN
+│   └── generate token successfully
+│
+└── EXTRACT
+    ├── extract email from valid token
+    └── reject invalid token
+SECURITY / JWT FILTER
+SECURITY
+│
+├── NO TOKEN
+│   └── reject unauthenticated request
+│
+├── VALID TOKEN
+│   └── authenticate successfully
+│
+├── EXPIRED TOKEN
+│   └── reject expired token
+│
+└── INVALID TOKEN
+    └── reject malformed/invalid token
+CONTROLLER / API TESTS
+CONTROLLER
+│
+├── JOB API
+│   ├── GET
+│   ├── POST
+│   ├── PUT
+│   ├── PATCH
+│   └── DELETE
+│
+├── AUTH API
+│   ├── REGISTER
+│   └── LOGIN
+│
+├── INTERVIEW API
+│   ├── GET
+│   ├── POST
+│   ├── PUT
+│   └── DELETE
+│
+└── DASHBOARD API
+    └── GET
+FINAL OVERALL STRUCTURE
+TESTING
+│
+├── JobService           ✅ DONE
+├── InterviewService     → NEXT
+├── AuthService
+├── DashboardService
+├── JwtService
+├── Security/JWT Filter
+├── Controller/API tests
+└── Exception handling
+
+We'll finish InterviewService completely first, then move down this list.
+
+
+
+
+
+
+
+
+
+
+
+
+

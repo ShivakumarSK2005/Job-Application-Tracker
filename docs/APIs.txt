@@ -1,0 +1,237 @@
+get Jobs With Pagination : GET http://localhost:8080/api/jobs?page=0&size=2
+get Jobs With Pagination and Sort : GET http://localhost:8080/api/job?page=0&size=2&sort=appliedDate,desc
+get jobs with filter (here jobs with compony name "Google") : GET http://localhost:8080/api/jobs?company=Google&page=0&size=2
+get jobs with filter (here jobs with status "APPLIED")    : GET http://localhost:8080/api/jobs?status=INTERVIEW&page=0&size=2
+get jobs with filter (here jobs with compony name "Google" And status "APPLIED")   : GET http://localhost:8080/api/jobs?company=Google&status=INTERVIEW&page=0&size=2
+get jobs with filter (here jobs with compony name "Google" And status "APPLIED") Along with Sort by Descending order : GET http://localhost:8080/api/jobs?company=Google&status=APPLIED&page=0&size=5&sort=appliedDate,desc
+
+
+
+jobId = Application Id -> where evere used in these apis both  are same dont conpuse use Application Id only everywhere jobId not exist
+
+Pagination Happens After Sorting
+Pagination is Used because : let assume we have 500 jobs we dont want all of them, So we use a page to retrive only some of them by giving the page number and size of each page in query.
+
+let assume we have 500 jobs we give quey page = 0 and size = 100
+the jobs are divided into 5 pages each of them with 100 pages(pag1 0, page 1, ...., page 4), so for subsequent queries with page = 1, size = 100, next 100 jobs will be retrived. 
+
+{
+  "content": [
+    {
+      "id": "6aad4aca60ca43d02f1ddcbc",
+      "company": "GOOGLE",
+      "role": "SDE",
+      "location": "Bangalore",
+      "status": "INTERVIEW",
+      "appliedDate": null
+    },
+    {
+      "id": "6aad4b5960ca43d02f1ddcbd",
+      "company": "Microsoft",
+      "role": "Backend Engineer Intern",
+      "location": "Bangalore",
+      "status": "SELECTED",
+      "appliedDate": null
+    }
+  ],
+  "empty": false,
+  "first": true,
+  "last": false,
+  "number": 0,
+  "numberOfElements": 2,
+  "pageable": {
+    "offset": 0,
+    "pageNumber": 0,
+    "pageSize": 2,
+    "paged": true,
+    "sort": {
+      "empty": true,
+      "sorted": false,
+      "unsorted": true
+    },
+    "unpaged": false
+  },
+  "size": 2,
+  "sort": {
+    "empty": true,
+    "sorted": false,
+    "unsorted": true
+  },
+  "totalElements": 4,
+  "totalPages": 2
+}
+
+this is how the retrived data will look like from a query with pagination (http://localhost:8080/api/jobs?page=0&size=2) i have 4 jobs in database , it returned the 2 beacuse i mentioned size = 2, 
+"first": true, -> means is this the first page, Yes (page 0);
+"last": false,  -> means is this the lase page, No (beacuse i have another page with page 1)
+
+the data retrive by the query with pagination 
+the whole data is didvided into pages based on the sixe provided in the query, 
+let assume we have 500 jobs in the database
+if i give size = 100, page 1(0 - 99), page 1(100 - 199), page 3(200 - 299), page 4(300 - 399), page 5(400 - 499)
+which page you ask that part of that data will be returned 
+if you want the jobs from 100 to 199 give query like http://localhost:8080/api/jobs?page=1&size=100
+
+//  Simple Use Case i have 1000 students
+let assume i want top 100 student based on marks
+i can use page like http://localhost:8080/api/students?page=0&size=100&sort=marks,desc
+-- another thing the sort i am used the sorting happens before the data is divided into pages 
+-- after sorting mentioned in the query the pagination happens  
+like this we can use 
+
+
+
+// Architecture 
+MongoDB
+   ↓
+JobApplication
+   ↓
+Service
+   ↓
+JobResponse
+   ↓
+Controller
+   ↓
+Client
+
+
+
+// 
+
+http://localhost:8080/api/jobs/{id}/status -> replace {id} with "id" of the job 
+like http://localhost:8080/api/jobs/6aad537f002172d4e2d6c99d/status
+Body : (body should be in this format) new Status
+{
+    "status": "INTERVIEW"
+}
+PUT -> generally replace/update the resource representation:
+PATCH -> partially modify the resource:
+
+
+// INTERVIEW
+Create an INTERVIEW
+
+// POST http://localhost:8080/api/jobs/{Applicarion Id}/interviews
+
+// Body:
+
+// {
+//   "interviewDate": "2026-09-25",
+//   "round": "Technical",
+//   "type": "Online",
+//   "interviewer": "John",
+//   "result": "PENDING"
+// }
+
+// Get an interviews related to a job
+// GET http://localhost:8080/api/jobs/{Applicarion Id}/interviews
+
+
+// PUT INterview by Interview id and Application id
+PUT http://localhost:8080/api/jobs/{Application Id}/interviews/{Interview Id}
+
+// Delete Interview 
+DELETE http://localhost:8080/api/jobs/{Application Id}/interviews/{interviewId}
+
+
+// User Hadeling 
+// User Registration
+
+POST http://localhost:8080/api/auth/register
+
+Body : 
+{
+    "name": "Shivakumar",
+    "email": "shiva@gmail.com",
+    "password": "password123"
+}
+
+Response From the server : 
+{
+  "id": "6aaedba2a7aadf47ffaa2d14",
+  "name": "Shivakumar",
+  "email": "shiva@gmail.com"
+}
+
+// if same email id used again to Register server resepond like this
+{
+  "message": "Email shiva@gmail.com is already registered"
+}
+
+// LogIn - Without JWT
+POST http://localhost:8080/api/auth/login
+Body : // Credentials 
+{
+    "email": "shiva@gmail.com",
+    "password": "password123"
+}
+Server Response : 
+{
+  "token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzaGl2YUBnbWFpbC5jb20iLCJpYXQiOjE3ODk5MDQxMDEsImV4cCI6MTc4OTk5MDUwMX0.GVamHGjJZOYJxCLoP02NGSLuXJSbxGJ4OsVeW1ZcPmfytJ0Y_4Mv_deLw0aWpIOH"
+}
+
+// GET Job APplications - With JWT - ALL
+GET http://localhost:8080/api/jobs
+Header : Authorization: Bearer YOUR_JWT_TOKEN
+
+// GET Job APplications - With JWT - Get Specific Job
+GET http://localhost:8080/api/jobs/{Application Id}
+Header : Authorization: Bearer YOUR_JWT_TOKEN
+
+// Create A Job Application
+POST http://localhost:8080/api/jobs
+Header : Authorization: Bearer YOUR_JWT_TOKEN
+Body :
+{
+  "company": "Google",
+  "role": "Software Engineer Intern",
+  "location": "Bangalore",
+  "status": "APPLIED",
+  "appliedDate": "2026-09-20"
+}
+
+// To Get DashBoard
+GET http://localhost:8080/api/dashboard
+Authorization: Bearer YOUR_TOKEN
+
+// JWT 
+Header
+  → HS384 algorithm
+
+Payload
+  → sub = shiva@gmail.com
+  → iat = issued-at time
+  → exp = expiration time
+
+Signature
+  → verifies that the token wasn't modified
+
+JWT = EncodedHeader.EncodedPayload.Signature
+
+Header  → Base64URL encoded → can be decoded
+Payload → Base64URL encoded → can be decoded
+
+Signature = HMAC-SHA256(
+    EncodedHeader + "." + EncodedPayload,
+    secret_key
+)
+
+Signature → cryptographic hash/MAC → cannot be reversed to get the secret key
+
+//
+Encoding     → can be decoded
+Encryption   → can be decrypted with a key
+Hashing      → cannot be reversed
+
+
+
+
+
+
+
+
+
+
+
+
+

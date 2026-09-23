@@ -1,0 +1,246 @@
+to run the project : .\mvnw.cmd spring-boot:run
+for Testing : .\mvnw.cmd test
+
+project str : (initially)
+jobtracker/
+│
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── jobtracker/
+│   │   │           └── JobtrackerApplication.java
+│   │   │
+│   │   └── resources/
+│   │       └── application.properties
+│   │
+│   └── test/
+│
+├── pom.xml
+└── ...
+
+
+// test 
+Body :
+
+{
+    "company": "NVIDIA",
+    "role": "Software Engineer Intern",
+    "location": "Bangalore",
+    "status": "APPLIED"
+}
+
+{
+    "company": "Microsoft",
+    "role": "Backend Engineer Intern",
+    "location": "Bangalore",
+    "status": "APPLIED"
+}
+
+{
+    "company": "GOOGLE",
+    "role": "Software Development Engineer",
+    "location": "Bangalore",
+    "status": "APPLIED"
+}
+
+// APIS
+
+// to get applications
+GET http://localhost:8080/api/jobs
+
+// to create appliacations 
+POST http://localhost:8080/api/jobs
+{
+    Body
+}
+
+// to update applications - replace {id} with intebded id
+PUT http://localhost:8080/api/jobs/{id}
+{
+    updated Body
+}
+
+// to delete appliacations -  replace {id} with intebded id
+DELETE http://localhost:8080/api/jobs/{id}
+
+
+// With DTO API Flow  
+
+POST   /api/jobs
+       ↓
+   JobRequest
+       ↓
+   JobApplication
+       ↓
+   JobResponse
+
+
+GET    /api/jobs
+       ↓
+   JobApplication
+       ↓
+   JobResponse
+
+
+PUT    /api/jobs/1
+       ↓
+   JobRequest
+       ↓
+   JobApplication
+       ↓
+   JobResponse
+
+
+DELETE /api/jobs/1
+       ↓
+   JobNotFoundException
+       ↓
+   GlobalExceptionHandler
+
+// My Understanding
+// pom.xml -> is for holding dependencies like node modules
+// maven is like npm + some more functionality
+// spring is like nodejs + express
+// DTO is hadeling the data, what user need to request and what response need to sent back to user
+//
+
+// Don't say: pom.xml is for holding dependencies like node_modules
+// Because node_modules actually contains the downloaded packages, whereas pom.xml declares which dependencies your project needs.
+
+// Similar relationship:
+
+// Node.js:
+// package.json  → declares dependencies
+// node_modules/ → downloaded dependencies
+
+// Java/Maven:
+// pom.xml       → declares dependencies
+// ~/.m2/        → downloaded Maven dependencies
+
+// And for DTO:
+
+// Client
+   ↓ request
+// Request DTO
+   ↓
+// Service
+   ↓
+// Response DTO
+   ↓
+// Client
+
+
+// GPT 
+// pom.xml → defines/manages the dependencies and build configuration of a Java/Maven project
+//             (similar to package.json in Node.js)
+
+// Maven → similar to npm + build/project management functionality
+//         It downloads dependencies, compiles, tests, packages, etc.
+
+// Spring → framework for building Java applications
+//          Spring Boot + Spring MVC is roughly comparable to Node.js + Express
+
+// DTO → defines the data shape transferred between the client and server
+//       Controls what data the user can send in a request
+//       Controls what data the server sends back in a response
+
+
+
+// Work-FLow JWT LogIn
+
+                 ┌──────────────────┐
+                 │ POST /auth/login │
+                 └────────┬─────────┘
+                          ↓
+                  Verify password
+                          ↓
+                     Generate JWT
+                          ↓
+                       Client
+                          │
+                          │ Bearer JWT
+                          ↓
+                  ┌───────────────┐
+                  │ JWT Filter    │
+                  └───────┬───────┘
+                          ↓
+                   Verify signature
+                          ↓
+                    Extract email
+                          ↓
+                  SecurityContext
+                          ↓
+                    JobController
+
+
+
+// JWT FLow 
+
+                    Authorization Header
+                           │
+             ┌─────────────┴─────────────┐
+             │                           │
+          Missing                    Present
+             │                           │
+             ↓                           ↓
+     SecurityConfig              Is it Bearer?
+             │                    /           \
+             ↓                   No            Yes
+    401 Authentication             │             │
+       required                    ↓             ↓
+                             401 Invalid      Validate JWT
+                                             /          \
+                                          Expired      Valid
+                                            │            │
+                                            ↓            ↓
+                                          401          Continue
+
+
+// After JWT Added to handling Job Appliction and DashBoard 
+                    ┌──────────────┐
+                    │     JWT      │
+                    └──────┬───────┘
+                           ↓
+                    ┌──────────────┐
+                    │ Current User │
+                    └──────┬───────┘
+                           ↓
+             ┌─────────────┴─────────────┐
+             ↓                           ↓
+       Job Applications             Dashboard
+             ↓
+       User Ownership
+             ↓
+        ┌────┴─────┐
+        ↓          ↓
+   Interviews    CRUD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
