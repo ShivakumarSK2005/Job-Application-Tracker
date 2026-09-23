@@ -47,7 +47,8 @@ public class AuthService {
         User user = new User(
                 request.getName(),
                 request.getEmail(),
-                hashedPassword
+                hashedPassword,
+                request.getMobileNumber()
         );
 
         User savedUser = userRepository.save(user);
@@ -55,7 +56,8 @@ public class AuthService {
         return new UserResponse(
                 savedUser.getId(),
                 savedUser.getName(),
-                savedUser.getEmail()
+                savedUser.getEmail(),
+                savedUser.getMobileNumber()
         );
     }
 

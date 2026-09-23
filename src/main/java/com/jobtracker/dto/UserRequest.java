@@ -15,6 +15,8 @@ public class UserRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
+    private String mobileNumber;
+
     public String getName() {
         return name;
     }
@@ -37,6 +39,14 @@ public class UserRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
     }
 }
 

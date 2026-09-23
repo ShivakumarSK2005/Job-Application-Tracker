@@ -73,19 +73,15 @@ public class InterviewService {
         interview.setType(request.getType());
         interview.setInterviewer(request.getInterviewer());
         interview.setResult(request.getResult());
+        interview.setNotes(request.getNotes());
+        interview.setInterviewTime(request.getInterviewTime());
+        interview.setRoundCategory(request.getRoundCategory());
+        interview.setMeetingLink(request.getMeetingLink());
+        interview.setReminders(request.getReminders());
 
-        // return interviewRepository.save(interview);
         Interview savedInterview = interviewRepository.save(interview);
 
-        return new InterviewResponse(
-                savedInterview.getId(),
-                savedInterview.getJobApplicationId(),
-                savedInterview.getInterviewDate(),
-                savedInterview.getRound(),
-                savedInterview.getType(),
-                savedInterview.getInterviewer(),
-                savedInterview.getResult()
-        );
+        return toInterviewResponse(savedInterview);
     }
 
     // Update Interview
@@ -93,10 +89,6 @@ public class InterviewService {
             String jobId,
             String interviewId,
             InterviewRequest request) {
-
-        // if (!jobRepository.existsById(jobId)) {
-        //     throw new JobNotFoundException(jobId);
-        // }
 
         User user = getCurrentUser();
         jobRepository.findByIdAndUserId(
@@ -107,29 +99,23 @@ public class InterviewService {
 
         Interview interview = interviewRepository
                 .findByIdAndJobApplicationId(interviewId, jobId)
-                .orElseThrow(() -> // Proper Exception handling 
+                .orElseThrow(() -> 
                         new InterviewNotFoundException(interviewId)); 
-                // not handeling exception will throw a NullPointerException if the interview is not found.(below line)
-                // .orElseThrow(() ->
-                //         new RuntimeException("Interview not found"));
 
         interview.setInterviewDate(request.getInterviewDate());
         interview.setRound(request.getRound());
         interview.setType(request.getType());
         interview.setInterviewer(request.getInterviewer());
         interview.setResult(request.getResult());
+        interview.setNotes(request.getNotes());
+        interview.setInterviewTime(request.getInterviewTime());
+        interview.setRoundCategory(request.getRoundCategory());
+        interview.setMeetingLink(request.getMeetingLink());
+        interview.setReminders(request.getReminders());
 
         Interview savedInterview = interviewRepository.save(interview);
 
-        return new InterviewResponse(
-                savedInterview.getId(),
-                savedInterview.getJobApplicationId(),
-                savedInterview.getInterviewDate(),
-                savedInterview.getRound(),
-                savedInterview.getType(),
-                savedInterview.getInterviewer(),
-                savedInterview.getResult()
-        );
+        return toInterviewResponse(savedInterview);
     }
 
     // Delete Interview
@@ -174,17 +160,26 @@ public class InterviewService {
                 interviewRepository.findByJobApplicationId(jobId);
 
         return interviews.stream()
-                .map(interview -> new InterviewResponse(
-                        interview.getId(),
-                        interview.getJobApplicationId(),
-                        interview.getInterviewDate(),
-                        interview.getRound(),
-                        interview.getType(),
-                        interview.getInterviewer(),
-                        interview.getResult()
-                ))
+                .map(this::toInterviewResponse)
                 .toList();
-            }
+    }
+
+    private InterviewResponse toInterviewResponse(Interview interview) {
+        return new InterviewResponse(
+                interview.getId(),
+                interview.getJobApplicationId(),
+                interview.getInterviewDate(),
+                interview.getRound(),
+                interview.getType(),
+                interview.getInterviewer(),
+                interview.getResult(),
+                interview.getNotes(),
+                interview.getInterviewTime(),
+                interview.getRoundCategory(),
+                interview.getMeetingLink(),
+                interview.getReminders()
+        );
+    }
 }
 
 // The important part

@@ -33,6 +33,11 @@ public class JobApplication {
 
     private String userId;
 
+    private String oaEventDate;
+    private String oaPlatform;
+    private String oaNotes;
+    private java.util.List<String> oaReminders;
+
     public JobApplication() {
     }
 
@@ -102,5 +107,35 @@ public class JobApplication {
         this.appliedDate = appliedDate;
     }
 
+    public String getOaEventDate() {
+        return oaEventDate;
+    }
 
+    public void setOaEventDate(String oaEventDate) {
+        this.oaEventDate = oaEventDate;
+    }
+
+    public String getOaPlatform() {
+        return oaPlatform;
+    }
+
+    public void setOaPlatform(String oaPlatform) {
+        this.oaPlatform = oaPlatform;
+    }
+
+    public String getOaNotes() {
+        return oaNotes;
+    }
+
+    public void setOaNotes(String oaNotes) {
+        this.oaNotes = oaNotes;
+    }
+
+    public java.util.List<String> getOaReminders() {
+        return oaReminders;
+    }
+
+    public void setOaReminders(java.util.List<String> oaReminders) {
+        this.oaReminders = oaReminders;
+    }
 }

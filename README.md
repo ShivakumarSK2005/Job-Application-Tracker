@@ -152,5 +152,27 @@ To run unit and integration test suites:
 
 ---
 
+## 💻 Frontend Application (Trackr Pro)
+
+A modern, high-craft web client built with React 18, Vite, and Tailwind CSS. Designed with an enterprise-grade aesthetic (Linear/Ashby inspired) featuring:
+- **Dual View Modes**: Interactive **Kanban Pipeline Board** with quick stage transitions and **Enterprise Data Table** with sorting, search, and server-side pagination.
+- **Full Application Lifecycle**: Create, edit, status patching, and delete jobs.
+- **Embedded Interview Hub**: Schedule, edit, and track multi-round technical and behavioral interviews per job application with visual timeline.
+- **Pipeline Metrics & Funnel**: Real-time KPI cards and proportional pipeline distribution.
+- **Authentication**: JWT authentication with automatic request interceptors, session restoration, and validation.
+- **Dark & Light Mode**: Built-in high-contrast theme toggle with persistence.
+
+### Running the Frontend:
+
+```bash
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
+
+The frontend will run at `http://localhost:5173` with automatic reverse proxy to `http://localhost:8080`.
+
+---
+
 ## 📄 License
 This project is open source and available under the [MIT License](LICENSE).

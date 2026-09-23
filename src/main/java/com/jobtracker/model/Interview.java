@@ -17,6 +17,11 @@ public class Interview {
     private String type;
     private String interviewer;
     private String result;
+    private String notes;
+    private String interviewTime;
+    private String roundCategory;
+    private String meetingLink;
+    private java.util.List<String> reminders;
 
     public Interview() {
     }
@@ -35,6 +40,24 @@ public class Interview {
         this.type = type;
         this.interviewer = interviewer;
         this.result = result;
+    }
+
+    public Interview(
+            String jobApplicationId,
+            LocalDate interviewDate,
+            String round,
+            String type,
+            String interviewer,
+            String result,
+            String notes) {
+
+        this.jobApplicationId = jobApplicationId;
+        this.interviewDate = interviewDate;
+        this.round = round;
+        this.type = type;
+        this.interviewer = interviewer;
+        this.result = result;
+        this.notes = notes;
     }
 
     public String getId() {
@@ -87,5 +110,45 @@ public class Interview {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getMeetingLink() {
+        return meetingLink;
+    }
+
+    public void setMeetingLink(String meetingLink) {
+        this.meetingLink = meetingLink;
+    }
+
+    public java.util.List<String> getReminders() {
+        return reminders;
+    }
+
+    public void setReminders(java.util.List<String> reminders) {
+        this.reminders = reminders;
+    }
+
+    public String getInterviewTime() {
+        return interviewTime;
+    }
+
+    public void setInterviewTime(String interviewTime) {
+        this.interviewTime = interviewTime;
+    }
+
+    public String getRoundCategory() {
+        return roundCategory;
+    }
+
+    public void setRoundCategory(String roundCategory) {
+        this.roundCategory = roundCategory;
     }
 }

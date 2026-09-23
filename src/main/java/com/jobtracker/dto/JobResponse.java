@@ -12,11 +12,15 @@ public class JobResponse {
     private ApplicationStatus status;
     private LocalDate appliedDate;
     private String userId;
+    private String oaEventDate;
+    private String oaPlatform;
+    private String oaNotes;
+    private java.util.List<String> oaReminders;
 
     public JobResponse() {
     }
 
-    public JobResponse(String id, String company, String role,String userId,
+    public JobResponse(String id, String company, String role, String userId,
                        String location, ApplicationStatus status, LocalDate appliedDate) {
         this.id = id;
         this.company = company;
@@ -25,6 +29,22 @@ public class JobResponse {
         this.status = status;
         this.appliedDate = appliedDate;
         this.userId = userId;
+    }
+
+    public JobResponse(String id, String company, String role, String userId,
+                       String location, ApplicationStatus status, LocalDate appliedDate,
+                       String oaEventDate, String oaPlatform, String oaNotes, java.util.List<String> oaReminders) {
+        this.id = id;
+        this.company = company;
+        this.role = role;
+        this.location = location;
+        this.status = status;
+        this.appliedDate = appliedDate;
+        this.userId = userId;
+        this.oaEventDate = oaEventDate;
+        this.oaPlatform = oaPlatform;
+        this.oaNotes = oaNotes;
+        this.oaReminders = oaReminders;
     }
 
     public String getId() {
@@ -55,7 +75,21 @@ public class JobResponse {
         return userId;
     }
 
-    
+    public String getOaEventDate() {
+        return oaEventDate;
+    }
+
+    public String getOaPlatform() {
+        return oaPlatform;
+    }
+
+    public String getOaNotes() {
+        return oaNotes;
+    }
+
+    public java.util.List<String> getOaReminders() {
+        return oaReminders;
+    }
 }
 
 // Why do we need another DTO?

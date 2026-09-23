@@ -12,6 +12,7 @@ public class User {
     private String name;
     private String email;
     private String password;
+    private String mobileNumber;
 
     public User() {
     }
@@ -20,6 +21,13 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
+    }
+
+    public User(String name, String email, String password, String mobileNumber) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.mobileNumber = mobileNumber;
     }
 
     public String getId() {
@@ -48,5 +56,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
     }
 }

@@ -395,15 +395,7 @@ public class JobService {
 
         List<JobResponse> responses =
                 jobs.stream()
-                        .map(job -> new JobResponse(
-                                job.getId(),
-                                job.getCompany(),
-                                job.getRole(),
-                                job.getUserId(),
-                                job.getLocation(),
-                                job.getStatus(),
-                                job.getAppliedDate()
-                        ))
+                        .map(this::toResponse)
                         .toList();
 
         return new PageImpl<>(
@@ -421,7 +413,11 @@ public class JobService {
                 job.getUserId(),
                 job.getLocation(),
                 job.getStatus(),
-                job.getAppliedDate()
+                job.getAppliedDate(),
+                job.getOaEventDate(),
+                job.getOaPlatform(),
+                job.getOaNotes(),
+                job.getOaReminders()
         );
     }
 
@@ -447,32 +443,19 @@ public class JobService {
         job.setUserId(user.getId());
 
         JobApplication savedJob = jobRepository.save(job);
-
-        return new JobResponse(
-            savedJob.getId(),
-            savedJob.getCompany(),
-            savedJob.getRole(),
-            savedJob.getUserId(),
-            savedJob.getLocation(),
-            savedJob.getStatus(),
-            savedJob.getAppliedDate()
-        );
+        return toResponse(savedJob);
     }
 
     // // PUT - Update Job Without JWT
     // public JobResponse updateJob(String id, JobApplication updatedJob) {
-
     //     JobApplication existingJob = jobRepository.findById(id)
     //             .orElseThrow(() -> new JobNotFoundException(id));
-
     //     existingJob.setCompany(updatedJob.getCompany());
     //     existingJob.setRole(updatedJob.getRole());
     //     existingJob.setLocation(updatedJob.getLocation());
     //     existingJob.setStatus(updatedJob.getStatus());
     //     existingJob.setAppliedDate(updatedJob.getAppliedDate());
-
     //     JobApplication savedJob = jobRepository.save(existingJob);
-
     //     return toResponse(savedJob);
     // }
 
@@ -499,33 +482,38 @@ public class JobService {
                 .orElseThrow(() ->
                         new JobNotFoundException(id));
 
+        if (updatedJob.getOaEventDate() != null && !updatedJob.getOaEventDate().isBlank()) {
+            try {
+                java.time.LocalDateTime eventTime = java.time.LocalDateTime.parse(updatedJob.getOaEventDate());
+                if (eventTime.isBefore(java.time.LocalDateTime.now().minusMinutes(5))) {
+                    throw new IllegalArgumentException("OA Event date & time cannot be in the past");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                // Allow valid custom string or proceed
+            }
+        }
+
         existing.setCompany(updatedJob.getCompany());
         existing.setRole(updatedJob.getRole());
         existing.setLocation(updatedJob.getLocation());
         existing.setStatus(updatedJob.getStatus());
         existing.setAppliedDate(updatedJob.getAppliedDate());
+        existing.setOaEventDate(updatedJob.getOaEventDate());
+        existing.setOaPlatform(updatedJob.getOaPlatform());
+        existing.setOaNotes(updatedJob.getOaNotes());
+        existing.setOaReminders(updatedJob.getOaReminders());
 
         JobApplication saved =
                 jobRepository.save(existing);
 
-        return new JobResponse(
-            saved.getId(),
-            saved.getCompany(),
-            saved.getRole(),
-            saved.getUserId(),
-            saved.getLocation(),
-            saved.getStatus(),
-            saved.getAppliedDate()
-        );
+        return toResponse(saved);
     }
 
     // // Delete Job - Without JWT
     // public void deleteJob(String id) {
-
     //     if (!jobRepository.existsById(id)) {
     //         throw new JobNotFoundException(id);
     //     }
-
     //     jobRepository.deleteById(id);
     // }
 
@@ -545,25 +533,17 @@ public class JobService {
         jobRepository.delete(job);
     }
 
-    // Updating the status of a job application - With DTO Without JWT
-    // public JobResponse updateStatus(
-    //         String id,
-    //         ApplicationStatus status) {
-
-    //     JobApplication job = jobRepository.findById(id)
-    //             .orElseThrow(() -> new JobNotFoundException(id));
-
-    //     job.setStatus(status);
-
-    //     JobApplication savedJob = jobRepository.save(job);
-
-    //     return toResponse(savedJob);
-    // }
-
     // Updating the status of a job application - With DTO With JWT
     public JobResponse updateStatus(
             String id,
             ApplicationStatus status) {
+        return updateStatus(id, status, null);
+    }
+
+    public JobResponse updateStatus(
+            String id,
+            ApplicationStatus status,
+            String notes) {
 
         User user = getCurrentUser();
 
@@ -576,19 +556,19 @@ public class JobService {
                         new JobNotFoundException(id));
 
         job.setStatus(status);
+        if (notes != null && !notes.isBlank()) {
+            // If leaving OA or adding general stage notes, save into oaNotes or append
+            if (job.getOaNotes() != null && !job.getOaNotes().isBlank()) {
+                job.setOaNotes(job.getOaNotes() + "\n\n[" + status + " Transition Feedback]: " + notes.trim());
+            } else {
+                job.setOaNotes(notes.trim());
+            }
+        }
 
         JobApplication saved =
                 jobRepository.save(job);
 
-        return new JobResponse(
-            saved.getId(),
-            saved.getCompany(),
-            saved.getRole(),
-            saved.getUserId(),
-            saved.getLocation(),
-            saved.getStatus(),
-            saved.getAppliedDate()
-        );
+        return toResponse(saved);
     }
 
 

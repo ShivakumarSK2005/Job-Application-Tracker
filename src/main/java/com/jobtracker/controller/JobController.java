@@ -409,20 +409,13 @@ public class JobController {
         job.setLocation(request.getLocation());
         job.setStatus(request.getStatus());
         job.setAppliedDate(request.getAppliedDate());
+        job.setOaEventDate(request.getOaEventDate());
+        job.setOaPlatform(request.getOaPlatform());
+        job.setOaNotes(request.getOaNotes());
+        job.setOaReminders(request.getOaReminders());
 
         return jobService.createJob(job);
     }
-
-
-    // Update Job Application - Without DTO
-    // @PutMapping("/{id}")
-    // public JobApplication updateJob(
-    //         @PathVariable Long id,
-    //         @RequestBody JobApplication job) {
-
-    //     return jobService.updateJob(id, job);
-    // }
-
 
     // Update Job Application - With DTO
     @PutMapping("/{id}")
@@ -437,6 +430,10 @@ public class JobController {
         job.setLocation(request.getLocation());
         job.setStatus(request.getStatus());
         job.setAppliedDate(request.getAppliedDate());
+        job.setOaEventDate(request.getOaEventDate());
+        job.setOaPlatform(request.getOaPlatform());
+        job.setOaNotes(request.getOaNotes());
+        job.setOaReminders(request.getOaReminders());
 
         return jobService.updateJob(id, job);
     }
@@ -457,7 +454,8 @@ public class JobController {
 
         return jobService.updateStatus(
                 id,
-                request.getStatus()
+                request.getStatus(),
+                request.getNotes()
         );
     }
 
