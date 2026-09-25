@@ -97,18 +97,6 @@ export default function AuthPage() {
     }
   };
 
-  const fillDemoAccount = () => {
-    setFormData({
-      name: 'Shivakumar',
-      email: 'shiva@gmail.com',
-      mobileNumber: '+91 9876543210',
-      password: 'password123',
-      confirmPassword: 'password123',
-    });
-    setFieldErrors({});
-    setErrorMsg('');
-  };
-
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
       {/* Left Column / Brand Hero Panel */}
@@ -414,17 +402,6 @@ export default function AuthPage() {
               </div>
             )}
           </form>
-
-          {/* Quick Demo Pre-fill */}
-          <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 text-center">
-            <button
-              type="button"
-              onClick={fillDemoAccount}
-              className="text-xs text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 underline underline-offset-4 transition-colors"
-            >
-              Fill with sample credentials (shiva@gmail.com)
-            </button>
-          </div>
         </div>
       </div>
     </div>
