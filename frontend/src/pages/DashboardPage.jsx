@@ -292,8 +292,15 @@ export default function DashboardPage() {
           <JobFilters
             activeTab={activeTab}
             onActiveTabChange={setActiveTab}
-            activeCount={(metrics?.appliedCount || 0) + (metrics?.oaCount || 0) + (metrics?.interviewCount || 0)}
-            pastCount={(metrics?.selectedCount || 0) + (metrics?.rejectedCount || 0)}
+            activeCount={
+              (metrics?.applied || 0) +
+              (metrics?.onlineAssessments || 0) +
+              (metrics?.interviews || 0)
+            }
+            pastCount={
+              (metrics?.selected || 0) +
+              (metrics?.rejected || 0)
+            }
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             selectedStatus={selectedStatus}
