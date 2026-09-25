@@ -410,7 +410,7 @@ export default function AuthPage() {
 
             {loading && slowLoading && (
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs text-center leading-relaxed animate-pulse">
-                ⏳ The free cloud server on Render is waking up after inactivity (takes ~45-60 seconds on first request). Please wait a moment...
+                ⏳ The free cloud server on Render is waking up after inactivity (can take 1–2 minutes on first request). Please wait a moment...
               </div>
             )}
           </form>

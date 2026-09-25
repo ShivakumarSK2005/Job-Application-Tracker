@@ -21,7 +21,7 @@ if (envBase) {
 
 const api = axios.create({
   baseURL: rawBase,
-  timeout: 60000, // 60s timeout: accommodates Render free tier cold starts while preventing endless hangs
+  timeout: 120000, // 120s (2 minutes) timeout: accommodates Render free tier cold starts which can take more than a minute
   headers: {
     'Content-Type': 'application/json',
   },
