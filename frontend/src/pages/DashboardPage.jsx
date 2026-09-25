@@ -12,9 +12,11 @@ import NotesViewerModal from '../components/jobs/NotesViewerModal';
 import InterviewModal from '../components/interviews/InterviewModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useToast } from '../components/common/Toast';
+import { Bell } from 'lucide-react';
 import { jobApi } from '../api/jobApi';
 import { interviewApi } from '../api/interviewApi';
 import { dashboardApi } from '../api/dashboardApi';
+import { useReminderEngine } from '../utils/useReminderEngine';
 
 export default function DashboardPage() {
   // Metrics & Applications State
@@ -264,6 +266,9 @@ export default function DashboardPage() {
     setSortOption('appliedDate,desc');
   };
 
+  const reminderEngine = useReminderEngine(jobs, toast);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased selection:bg-indigo-500/20">
       {/* Top Navbar */}
@@ -273,10 +278,46 @@ export default function DashboardPage() {
           setIsFormModalOpen(true);
         }}
         stats={metrics}
+        reminderEngine={reminderEngine}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Browser Notification Activation Banner */}
+        {reminderEngine.permission === 'default' && !isBannerDismissed && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-950 dark:text-indigo-200 shadow-sm animate-in fade-in duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Bell className="w-4 h-4 animate-bounce" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                  Enable Real-Time Desktop Reminders
+                </p>
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">
+                  Receive browser push notifications & audio chimes 1 hour and 30 minutes before your Online Assessments and Interviews.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsBannerDismissed(true)}
+                className="text-[11px] px-3 py-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-medium transition-colors"
+              >
+                Dismiss
+              </button>
+              <button
+                type="button"
+                onClick={() => reminderEngine.requestPermission()}
+                className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
+              >
+                Enable Notifications
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Metric Cards Section */}
         <section>
           <MetricCards metrics={metrics} loading={metricsLoading} />

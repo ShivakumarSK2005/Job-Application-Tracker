@@ -4,9 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { notificationService } from '../../utils/notificationService';
 
-export default function Navbar({ onOpenAddModal, stats }) {
+export default function Navbar({ onOpenAddModal, stats, reminderEngine }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  const isGranted = reminderEngine?.permission === 'granted';
+  const isDenied = reminderEngine?.permission === 'denied';
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
@@ -47,16 +50,29 @@ export default function Navbar({ onOpenAddModal, stats }) {
           <button
             type="button"
             onClick={async () => {
-              const res = await notificationService.requestPermission();
-              if (res === 'granted') {
-                notificationService.triggerTestReminder();
+              if (isGranted) {
+                reminderEngine?.sendTestNotification();
+              } else {
+                await reminderEngine?.requestPermission();
               }
             }}
-            title="Enable Desktop Push Reminders"
+            title={
+              isGranted
+                ? 'Desktop Notifications Active (Click to send test alert)'
+                : isDenied
+                ? 'Desktop notifications blocked by browser settings'
+                : 'Click to enable Desktop Push Reminders'
+            }
             className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors relative"
           >
             <Bell className="w-4 h-4" />
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 absolute top-1.5 right-1.5" />
+            {isGranted ? (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-zinc-950" title="Notifications Active" />
+            ) : isDenied ? (
+              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-zinc-950" title="Notifications Denied" />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-zinc-950" title="Notifications Not Enabled" />
+            )}
           </button>
 
           {/* Theme Toggle */}

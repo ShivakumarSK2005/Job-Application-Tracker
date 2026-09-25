@@ -27,15 +27,15 @@ public class EmailService {
             return false;
         }
 
-        String htmlContent = buildHtmlTemplate(title, company, role, eventTime, notes, link);
-
         if (mailSender == null) {
-            log.info("===> [SIMULATED EMAIL REMINDER] To: {} | Subject: {} | Event: {} for {} - {}",
-                    toEmail, subject, title, company, role);
+            log.info("===> [SIMULATED EMAIL REMINDER] To: {} | Subject: {} | Event: {} for {} - {} | Time: {} | Link: {} | Notes: {}",
+                    toEmail, subject, title, company, role, eventTime, link, notes);
+            log.warn("[EMAIL NOTICE] Email delivery was simulated. To send real emails, configure SPRING_MAIL_USERNAME and SPRING_MAIL_PASSWORD in your Render environment variables.");
             return true;
         }
 
         try {
+            String htmlContent = buildHtmlTemplate(title, company, role, eventTime, notes, link);
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
