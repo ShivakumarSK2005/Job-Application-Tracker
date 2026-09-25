@@ -16,6 +16,7 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [slowLoading, setSlowLoading] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem('last_user_email');
@@ -23,6 +24,18 @@ export default function AuthPage() {
 
   const { login, register, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => {
+        setSlowLoading(true);
+      }, 3500);
+    } else {
+      setSlowLoading(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const validate = () => {
     const errs = {};
@@ -383,7 +396,10 @@ export default function AuthPage() {
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 shadow-md shadow-indigo-600/10 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60"
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{isRegister ? 'Creating Account...' : 'Signing In...'}</span>
+                </>
               ) : (
                 <>
                   <span>{isRegister ? 'Complete Registration' : 'Sign In to Workspace'}</span>
@@ -391,6 +407,12 @@ export default function AuthPage() {
                 </>
               )}
             </button>
+
+            {loading && slowLoading && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs text-center leading-relaxed animate-pulse">
+                ⏳ The free cloud server on Render is waking up after inactivity (takes ~45-60 seconds on first request). Please wait a moment...
+              </div>
+            )}
           </form>
 
           {/* Quick Demo Pre-fill */}
