@@ -206,7 +206,11 @@ export default function DashboardPage() {
           if (j.id === jobId) {
             const updated = { ...j, status: newStatus };
             if (notes) {
-              updated.oaNotes = j.oaNotes ? `${j.oaNotes}\n\n${notes}` : notes;
+              if (j.status === 'ONLINE_ASSESSMENT') {
+                updated.oaNotes = j.oaNotes ? `${j.oaNotes}\n\n${notes}` : notes;
+              } else {
+                updated.interviewNotes = j.interviewNotes ? `${j.interviewNotes}\n\n${notes}` : notes;
+              }
             }
             return updated;
           }
@@ -215,11 +219,17 @@ export default function DashboardPage() {
       );
 
       if (selectedJobForDrawer && selectedJobForDrawer.id === jobId) {
-        setSelectedJobForDrawer((prev) => ({
-          ...prev,
-          status: newStatus,
-          oaNotes: notes ? (prev.oaNotes ? `${prev.oaNotes}\n\n${notes}` : notes) : prev.oaNotes,
-        }));
+        setSelectedJobForDrawer((prev) => {
+          const updated = { ...prev, status: newStatus };
+          if (notes) {
+            if (prev.status === 'ONLINE_ASSESSMENT') {
+              updated.oaNotes = prev.oaNotes ? `${prev.oaNotes}\n\n${notes}` : notes;
+            } else {
+              updated.interviewNotes = prev.interviewNotes ? `${prev.interviewNotes}\n\n${notes}` : notes;
+            }
+          }
+          return updated;
+        });
       }
 
       loadMetrics();
@@ -441,12 +451,27 @@ export default function DashboardPage() {
         isOpen={Boolean(viewingNotesJob)}
         onClose={() => setViewingNotesJob(null)}
         job={viewingNotesJob}
-        onNotesUpdated={(id, updatedNotes) => {
+        onNotesUpdated={(id, updatedOaNotes, updatedInterviewNotes) => {
           setJobs((prev) =>
-            prev.map((j) => (j.id === id ? { ...j, oaNotes: updatedNotes } : j))
+            prev.map((j) =>
+              j.id === id
+                ? { ...j, oaNotes: updatedOaNotes, interviewNotes: updatedInterviewNotes }
+                : j
+            )
           );
           if (selectedJobForDrawer?.id === id) {
-            setSelectedJobForDrawer((prev) => ({ ...prev, oaNotes: updatedNotes }));
+            setSelectedJobForDrawer((prev) => ({
+              ...prev,
+              oaNotes: updatedOaNotes,
+              interviewNotes: updatedInterviewNotes,
+            }));
+          }
+          if (viewingNotesJob?.id === id) {
+            setViewingNotesJob((prev) => ({
+              ...prev,
+              oaNotes: updatedOaNotes,
+              interviewNotes: updatedInterviewNotes,
+            }));
           }
         }}
       />

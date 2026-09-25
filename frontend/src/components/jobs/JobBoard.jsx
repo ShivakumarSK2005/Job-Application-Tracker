@@ -170,14 +170,14 @@ export default function JobBoard({
                             if (onOpenNotes) onOpenNotes(job);
                           }}
                           className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md transition-all ${
-                            job.oaNotes
+                            (job.oaNotes?.trim() || job.interviewNotes?.trim())
                               ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 hover:scale-105'
                               : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100'
                           }`}
                           title="Click to view OA reflections & interview round notes"
                         >
                           <BookOpen className="w-3 h-3" />
-                          <span>{job.oaNotes ? '📝 View Notes' : 'Notes / Rounds'}</span>
+                          <span>{(job.oaNotes?.trim() || job.interviewNotes?.trim()) ? '📝 View Notes' : 'Notes / Rounds'}</span>
                         </button>
                       </div>
 

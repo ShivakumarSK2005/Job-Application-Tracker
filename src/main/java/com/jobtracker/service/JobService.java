@@ -253,15 +253,7 @@ public class JobService {
                 .orElseThrow(() ->
                         new JobNotFoundException(id));
 
-        return new JobResponse(
-                job.getId(),
-                job.getCompany(),
-                job.getRole(),
-                job.getUserId(),
-                job.getLocation(),
-                job.getStatus(),
-                job.getAppliedDate()
-        );
+        return toResponse(job);
     }
 
     // Search Job By Company
@@ -417,7 +409,8 @@ public class JobService {
                 job.getOaEventDate(),
                 job.getOaPlatform(),
                 job.getOaNotes(),
-                job.getOaReminders()
+                job.getOaReminders(),
+                job.getInterviewNotes()
         );
     }
 
@@ -502,6 +495,7 @@ public class JobService {
         existing.setOaPlatform(updatedJob.getOaPlatform());
         existing.setOaNotes(updatedJob.getOaNotes());
         existing.setOaReminders(updatedJob.getOaReminders());
+        existing.setInterviewNotes(updatedJob.getInterviewNotes());
 
         JobApplication saved =
                 jobRepository.save(existing);
@@ -555,13 +549,21 @@ public class JobService {
                 .orElseThrow(() ->
                         new JobNotFoundException(id));
 
+        ApplicationStatus previousStatus = job.getStatus();
         job.setStatus(status);
+
         if (notes != null && !notes.isBlank()) {
-            // If leaving OA or adding general stage notes, save into oaNotes or append
-            if (job.getOaNotes() != null && !job.getOaNotes().isBlank()) {
-                job.setOaNotes(job.getOaNotes() + "\n\n[" + status + " Transition Feedback]: " + notes.trim());
+            String noteEntry = notes.trim();
+            // If previous status was Online Assessment, these notes belong to OA reflections
+            if (previousStatus == ApplicationStatus.ONLINE_ASSESSMENT) {
+                job.setOaNotes(job.getOaNotes() != null && !job.getOaNotes().isBlank()
+                        ? job.getOaNotes() + "\n\n" + noteEntry
+                        : noteEntry);
             } else {
-                job.setOaNotes(notes.trim());
+                // Notes in Interview phase (or advancing to Offer/Rejected from interview) belong to Interview Notes
+                job.setInterviewNotes(job.getInterviewNotes() != null && !job.getInterviewNotes().isBlank()
+                        ? job.getInterviewNotes() + "\n\n" + noteEntry
+                        : noteEntry);
             }
         }
 

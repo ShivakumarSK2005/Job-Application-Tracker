@@ -37,6 +37,7 @@ public class JobApplication {
     private String oaPlatform;
     private String oaNotes;
     private java.util.List<String> oaReminders;
+    private String interviewNotes;
 
     public JobApplication() {
     }
@@ -137,5 +138,13 @@ public class JobApplication {
 
     public void setOaReminders(java.util.List<String> oaReminders) {
         this.oaReminders = oaReminders;
+    }
+
+    public String getInterviewNotes() {
+        return interviewNotes;
+    }
+
+    public void setInterviewNotes(String interviewNotes) {
+        this.interviewNotes = interviewNotes;
     }
 }

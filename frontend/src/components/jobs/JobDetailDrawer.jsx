@@ -192,6 +192,18 @@ export default function JobDetailDrawer({
               </div>
             )}
 
+            {/* Interview Phase Comments if present */}
+            {job.interviewNotes && (
+              <div className="p-3 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/40">
+                <div className="text-[11px] font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider mb-1">
+                  💼 Interview Phase Learnings & Reflections
+                </div>
+                <p className="text-xs text-indigo-950 dark:text-indigo-100 whitespace-pre-wrap leading-relaxed">
+                  {job.interviewNotes}
+                </p>
+              </div>
+            )}
+
             {/* Interviews Management Section */}
             <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
               <InterviewList jobId={job.id} jobTitle={`${job.role} @ ${job.company}`} />

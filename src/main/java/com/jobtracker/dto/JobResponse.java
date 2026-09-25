@@ -16,6 +16,7 @@ public class JobResponse {
     private String oaPlatform;
     private String oaNotes;
     private java.util.List<String> oaReminders;
+    private String interviewNotes;
 
     public JobResponse() {
     }
@@ -34,6 +35,13 @@ public class JobResponse {
     public JobResponse(String id, String company, String role, String userId,
                        String location, ApplicationStatus status, LocalDate appliedDate,
                        String oaEventDate, String oaPlatform, String oaNotes, java.util.List<String> oaReminders) {
+        this(id, company, role, userId, location, status, appliedDate, oaEventDate, oaPlatform, oaNotes, oaReminders, null);
+    }
+
+    public JobResponse(String id, String company, String role, String userId,
+                       String location, ApplicationStatus status, LocalDate appliedDate,
+                       String oaEventDate, String oaPlatform, String oaNotes, java.util.List<String> oaReminders,
+                       String interviewNotes) {
         this.id = id;
         this.company = company;
         this.role = role;
@@ -45,6 +53,7 @@ public class JobResponse {
         this.oaPlatform = oaPlatform;
         this.oaNotes = oaNotes;
         this.oaReminders = oaReminders;
+        this.interviewNotes = interviewNotes;
     }
 
     public String getId() {
@@ -89,6 +98,10 @@ public class JobResponse {
 
     public java.util.List<String> getOaReminders() {
         return oaReminders;
+    }
+
+    public String getInterviewNotes() {
+        return interviewNotes;
     }
 }
 
