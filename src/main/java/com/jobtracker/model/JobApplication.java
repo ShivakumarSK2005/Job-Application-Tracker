@@ -38,6 +38,7 @@ public class JobApplication {
     private String oaNotes;
     private java.util.List<String> oaReminders;
     private String interviewNotes;
+    private java.util.List<String> sentReminders = new java.util.ArrayList<>();
 
     public JobApplication() {
     }
@@ -146,5 +147,16 @@ public class JobApplication {
 
     public void setInterviewNotes(String interviewNotes) {
         this.interviewNotes = interviewNotes;
+    }
+
+    public java.util.List<String> getSentReminders() {
+        if (sentReminders == null) {
+            sentReminders = new java.util.ArrayList<>();
+        }
+        return sentReminders;
+    }
+
+    public void setSentReminders(java.util.List<String> sentReminders) {
+        this.sentReminders = sentReminders;
     }
 }

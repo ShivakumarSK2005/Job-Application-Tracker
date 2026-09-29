@@ -1,12 +1,16 @@
-import React from 'react';
-import { Briefcase, Plus, Sun, Moon, LogOut, User, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { Briefcase, Plus, Sun, Moon, LogOut, User, Bell, Mail, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from './Toast';
+import { jobApi } from '../../api/jobApi';
 import { notificationService } from '../../utils/notificationService';
 
 export default function Navbar({ onOpenAddModal, stats, reminderEngine }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const toast = useToast();
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
 
   const isGranted = reminderEngine?.permission === 'granted';
   const isDenied = reminderEngine?.permission === 'denied';
@@ -73,6 +77,32 @@ export default function Navbar({ onOpenAddModal, stats, reminderEngine }) {
             ) : (
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-zinc-950" title="Notifications Not Enabled" />
             )}
+          </button>
+
+          {/* Test Email Button */}
+          <button
+            type="button"
+            disabled={isSendingTestEmail}
+            onClick={async () => {
+              setIsSendingTestEmail(true);
+              try {
+                const res = await jobApi.sendTestEmail();
+                if (res.success) {
+                  toast.success(res.message || '✅ Test email sent to your inbox!');
+                } else {
+                  toast.error(res.message || '❌ Failed to send email. Check Render SMTP settings.');
+                }
+              } catch (err) {
+                const msg = err.response?.data?.message || err.message || 'Failed to send test email';
+                toast.error('❌ ' + msg);
+              } finally {
+                setIsSendingTestEmail(false);
+              }
+            }}
+            title="Send Live Test Email Reminder to your inbox"
+            className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors relative"
+          >
+            {isSendingTestEmail ? <Loader2 className="w-4 h-4 animate-spin text-indigo-600" /> : <Mail className="w-4 h-4" />}
           </button>
 
           {/* Theme Toggle */}

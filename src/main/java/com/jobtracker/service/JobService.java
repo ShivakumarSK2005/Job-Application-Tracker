@@ -182,21 +182,24 @@ public class JobService {
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private final MongoTemplate mongoTemplate;
-
-    // Without JWT
-    // public JobService(JobRepository jobRepository) {
-    //     this.jobRepository = jobRepository;
-    // }
+    private final EmailService emailService;
 
     // With JWT
     public JobService(
             JobRepository jobRepository,
             UserRepository userRepository,
-            MongoTemplate mongoTemplate) {
+            MongoTemplate mongoTemplate,
+            EmailService emailService) {
 
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
-                this.mongoTemplate = mongoTemplate;
+        this.mongoTemplate = mongoTemplate;
+        this.emailService = emailService;
+    }
+
+    public java.util.Map<String, Object> sendTestEmail() {
+        User user = getCurrentUser();
+        return emailService.testEmailConnection(user.getEmail());
     }
     
     // With JWT -> getting User 

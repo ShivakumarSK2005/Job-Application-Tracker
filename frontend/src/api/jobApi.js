@@ -41,4 +41,9 @@ export const jobApi = {
     const response = await api.delete(`/jobs/${id}`);
     return response.data;
   },
+
+  sendTestEmail: async () => {
+    const response = await api.post('/jobs/test-email');
+    return response.data;
+  },
 };

@@ -19,9 +19,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @EnableScheduling
@@ -36,9 +34,6 @@ public class ReminderSchedulerService {
 
     @Value("${app.timezone:Asia/Kolkata}")
     private String configuredTimezone;
-
-    // In-memory cache of already dispatched reminders to prevent duplicate emails
-    private final Set<String> dispatchedReminders = new HashSet<>();
 
     public ReminderSchedulerService(JobRepository jobRepository,
                                     InterviewRepository interviewRepository,
@@ -82,23 +77,25 @@ public class ReminderSchedulerService {
                 User user = job.getUserId() != null ? userRepository.findById(job.getUserId()).orElse(null) : null;
                 if (user == null || user.getEmail() == null || user.getEmail().isBlank()) continue;
 
+                boolean jobModified = false;
+                List<String> sentList = job.getSentReminders();
+
                 for (String reminderTag : job.getOaReminders()) {
                     long minutesBefore = parseReminderToMinutes(reminderTag);
                     if (minutesBefore < 0) continue;
 
                     LocalDateTime reminderTriggerTime = eventTime.minusMinutes(minutesBefore);
 
-                    // If trigger time has arrived (within the last 15 minutes window) and not yet sent
-                    if (!now.isBefore(reminderTriggerTime) && now.isBefore(reminderTriggerTime.plusMinutes(15))) {
-                        String dispatchKey = "OA-" + job.getId() + "-" + reminderTag + "-" + job.getOaEventDate();
-                        if (!dispatchedReminders.contains(dispatchKey)) {
-                            dispatchedReminders.add(dispatchKey);
+                    // Trigger if target trigger time has arrived and event is still in the future
+                    if (!now.isBefore(reminderTriggerTime) && now.isBefore(eventTime)) {
+                        String dispatchToken = reminderTag + "@" + job.getOaEventDate();
+                        if (!sentList.contains(dispatchToken)) {
                             String readableTime = eventTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm a"));
                             String humanAhead = formatHumanAhead(reminderTag);
-                            log.info("Dispatching OA reminder for job {} to {} (Trigger time reached: {})",
-                                    job.getId(), user.getEmail(), readableTime);
+                            log.info("Dispatching OA reminder for job {} ({}) to {} (Event at: {})",
+                                    job.getId(), reminderTag, user.getEmail(), readableTime);
 
-                            emailService.sendReminderEmail(
+                            boolean sent = emailService.sendReminderEmail(
                                     user.getEmail(),
                                     "🔔 Reminder: Upcoming Online Assessment for " + job.getCompany(),
                                     "Upcoming Online Assessment (" + humanAhead + ")",
@@ -108,8 +105,18 @@ public class ReminderSchedulerService {
                                     job.getOaNotes(),
                                     job.getOaPlatform()
                             );
+
+                            if (sent) {
+                                sentList.add(dispatchToken);
+                                jobModified = true;
+                            }
                         }
                     }
+                }
+
+                if (jobModified) {
+                    job.setSentReminders(sentList);
+                    jobRepository.save(job);
                 }
             } catch (Exception e) {
                 log.warn("Error processing OA reminder for job {}: {}", job.getId(), e.getMessage());
@@ -134,6 +141,9 @@ public class ReminderSchedulerService {
             User user = job.getUserId() != null ? userRepository.findById(job.getUserId()).orElse(null) : null;
             if (user == null || user.getEmail() == null || user.getEmail().isBlank()) continue;
 
+            boolean interviewModified = false;
+            List<String> sentList = interview.getSentReminders();
+
             for (String reminderTag : interview.getReminders()) {
                 boolean shouldTrigger = false;
                 String timeDisplay = interview.getInterviewDate().toString();
@@ -147,12 +157,11 @@ public class ReminderSchedulerService {
                             long minutesBefore = "30m".equalsIgnoreCase(reminderTag) ? 30 : 60;
                             LocalDateTime triggerTime = interviewTime.minusMinutes(minutesBefore);
 
-                            if (!now.isBefore(triggerTime) && now.isBefore(triggerTime.plusMinutes(15))) {
+                            if (!now.isBefore(triggerTime) && now.isBefore(interviewTime)) {
                                 shouldTrigger = true;
                                 timeDisplay = interviewTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm a"));
                             }
                         } catch (Exception ex) {
-                            // If time format fails, fallback to day check
                             if (today.isEqual(interview.getInterviewDate())) {
                                 shouldTrigger = true;
                             }
@@ -165,7 +174,7 @@ public class ReminderSchedulerService {
                     long daysBefore = parseReminderToDays(reminderTag);
                     if (daysBefore >= 0) {
                         LocalDate triggerDate = interview.getInterviewDate().minusDays(daysBefore);
-                        if (today.isEqual(triggerDate)) {
+                        if (!today.isBefore(triggerDate) && !today.isAfter(interview.getInterviewDate())) {
                             shouldTrigger = true;
                             if (interview.getInterviewTime() != null && !interview.getInterviewTime().isBlank()) {
                                 timeDisplay += " at " + interview.getInterviewTime();
@@ -176,13 +185,12 @@ public class ReminderSchedulerService {
 
                 if (shouldTrigger) {
                     String interviewTimeVal = interview.getInterviewTime() != null ? interview.getInterviewTime() : "";
-                    String dispatchKey = "INT-" + interview.getId() + "-" + reminderTag + "-" + interview.getInterviewDate() + "-" + interviewTimeVal;
-                    if (!dispatchedReminders.contains(dispatchKey)) {
-                        dispatchedReminders.add(dispatchKey);
+                    String dispatchToken = reminderTag + "@" + interview.getInterviewDate() + "@" + interviewTimeVal;
+                    if (!sentList.contains(dispatchToken)) {
                         String humanAhead = formatHumanAhead(reminderTag);
-                        log.info("Dispatching Interview reminder for {} to {}", interview.getRound(), user.getEmail());
+                        log.info("Dispatching Interview reminder for {} ({}) to {}", interview.getRound(), reminderTag, user.getEmail());
 
-                        emailService.sendReminderEmail(
+                        boolean sent = emailService.sendReminderEmail(
                                 user.getEmail(),
                                 "🔔 Reminder: " + interview.getRound() + " with " + job.getCompany(),
                                 "Upcoming Interview Round (" + humanAhead + ")",
@@ -192,8 +200,18 @@ public class ReminderSchedulerService {
                                 interview.getNotes(),
                                 interview.getMeetingLink()
                         );
+
+                        if (sent) {
+                            sentList.add(dispatchToken);
+                            interviewModified = true;
+                        }
                     }
                 }
+            }
+
+            if (interviewModified) {
+                interview.setSentReminders(sentList);
+                interviewRepository.save(interview);
             }
         }
     }
@@ -201,15 +219,12 @@ public class ReminderSchedulerService {
     private LocalDateTime parseDateTime(String rawDate, ZoneId zoneId) {
         if (rawDate == null || rawDate.isBlank()) return null;
         try {
-            // ISO instant with 'Z'
             if (rawDate.endsWith("Z")) {
                 return Instant.parse(rawDate).atZone(zoneId).toLocalDateTime();
             }
-            // ISO format with timezone offset e.g. +05:30
             if (rawDate.length() > 19 && (rawDate.charAt(19) == '+' || rawDate.charAt(19) == '-')) {
                 return java.time.OffsetDateTime.parse(rawDate).atZoneSameInstant(zoneId).toLocalDateTime();
             }
-            // Standard datetime-local string (e.g. 2026-09-25T18:43)
             if (rawDate.length() >= 16) {
                 return LocalDateTime.parse(rawDate.substring(0, Math.min(rawDate.length(), 19)));
             }

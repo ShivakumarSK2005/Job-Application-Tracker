@@ -3,11 +3,14 @@ package com.jobtracker.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EmailService {
@@ -15,6 +18,9 @@ public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username:}")
+    private String senderEmail;
 
     // Optional autowiring so application works smoothly even if SMTP properties aren't configured yet
     public EmailService(@Autowired(required = false) JavaMailSender mailSender) {
@@ -27,17 +33,18 @@ public class EmailService {
             return false;
         }
 
-        if (mailSender == null) {
+        if (mailSender == null || senderEmail == null || senderEmail.isBlank()) {
             log.info("===> [SIMULATED EMAIL REMINDER] To: {} | Subject: {} | Event: {} for {} - {} | Time: {} | Link: {} | Notes: {}",
                     toEmail, subject, title, company, role, eventTime, link, notes);
             log.warn("[EMAIL NOTICE] Email delivery was simulated. To send real emails, configure SPRING_MAIL_USERNAME and SPRING_MAIL_PASSWORD in your Render environment variables.");
-            return true;
+            return false;
         }
 
         try {
             String htmlContent = buildHtmlTemplate(title, company, role, eventTime, notes, link);
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(senderEmail, "Trackr Notifications");
             helper.setTo(toEmail);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
@@ -45,8 +52,55 @@ public class EmailService {
             log.info("Reminder email successfully sent to {}", toEmail);
             return true;
         } catch (Exception e) {
-            log.error("Failed to send reminder email to {}: {}", toEmail, e.getMessage());
+            log.error("Failed to send reminder email to {}: {}", toEmail, e.getMessage(), e);
             return false;
+        }
+    }
+
+    public Map<String, Object> testEmailConnection(String toEmail) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (senderEmail == null || senderEmail.isBlank()) {
+            result.put("success", false);
+            result.put("configured", false);
+            result.put("message", "SPRING_MAIL_USERNAME is not configured in Render Environment Variables.");
+            return result;
+        }
+
+        if (mailSender == null) {
+            result.put("success", false);
+            result.put("configured", false);
+            result.put("message", "JavaMailSender could not be initialized. Please check SMTP settings.");
+            return result;
+        }
+
+        try {
+            String htmlContent = buildHtmlTemplate(
+                    "SMTP Connection Verified",
+                    "JobTracker Cloud",
+                    "System Test",
+                    "Immediate (Live Test)",
+                    "Your Gmail SMTP credentials are valid and live emails are fully operational!",
+                    null
+            );
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(senderEmail, "Trackr Notifications");
+            helper.setTo(toEmail);
+            helper.setSubject("✅ JobTracker Test Email: Reminders Working!");
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+
+            result.put("success", true);
+            result.put("configured", true);
+            result.put("message", "Test email successfully sent to " + toEmail + "! Please check your inbox (and Spam folder).");
+            return result;
+        } catch (Exception e) {
+            log.error("Test email connection failed: {}", e.getMessage(), e);
+            result.put("success", false);
+            result.put("configured", true);
+            result.put("message", "SMTP Delivery Failed: " + e.getMessage() + ". Check if your 16-character Google App Password is correct.");
+            return result;
         }
     }
 

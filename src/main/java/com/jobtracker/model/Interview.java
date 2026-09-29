@@ -22,6 +22,7 @@ public class Interview {
     private String roundCategory;
     private String meetingLink;
     private java.util.List<String> reminders;
+    private java.util.List<String> sentReminders = new java.util.ArrayList<>();
 
     public Interview() {
     }
@@ -150,5 +151,16 @@ public class Interview {
 
     public void setRoundCategory(String roundCategory) {
         this.roundCategory = roundCategory;
+    }
+
+    public java.util.List<String> getSentReminders() {
+        if (sentReminders == null) {
+            sentReminders = new java.util.ArrayList<>();
+        }
+        return sentReminders;
+    }
+
+    public void setSentReminders(java.util.List<String> sentReminders) {
+        this.sentReminders = sentReminders;
     }
 }

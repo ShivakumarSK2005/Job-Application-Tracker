@@ -459,6 +459,11 @@ public class JobController {
         );
     }
 
+    @PostMapping("/test-email")
+    public java.util.Map<String, Object> testEmail() {
+        return jobService.sendTestEmail();
+    }
+
 }
 
 
