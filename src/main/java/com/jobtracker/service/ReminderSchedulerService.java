@@ -53,8 +53,8 @@ public class ReminderSchedulerService {
         }
     }
 
-    // Runs every 60 seconds
-    @Scheduled(fixedRate = 60000)
+    // Runs every 60 seconds (with 15s initial delay after startup)
+    @Scheduled(initialDelay = 15000, fixedRate = 60000)
     public void scanAndDispatchReminders() {
         ZoneId zoneId = getAppZoneId();
         LocalDateTime now = LocalDateTime.now(zoneId);
