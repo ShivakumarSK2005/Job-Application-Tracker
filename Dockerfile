@@ -8,7 +8,7 @@ RUN mvn clean package -DskipTests
 # Runtime Stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/jobtracker-0.0.1-SNAPSHOT.jar app.jar
 ENV PORT=10000
 EXPOSE 10000
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-10000} -Dserver.address=0.0.0.0 -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Xmx320m -Xms128m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Dserver.port=${PORT:-10000} -Dserver.address=0.0.0.0 -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
